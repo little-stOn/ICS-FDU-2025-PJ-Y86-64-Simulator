@@ -1,0 +1,41 @@
+0x000:                      | 	.pos 0
+0x000: 30f40005000000000000 | 	irmovq stack, %rsp
+0x00a: 801400000000000000   | 	call main
+0x013: 00                   | 	halt
+                            | 
+0x014:                      | main:
+0x014: 30f80003000000000000 | 	irmovq $0x300, %r8   # Base Address A
+0x01e: 30f90004000000000000 | 	irmovq $0x400, %r9   # Base Address B (Conflict with A!)
+0x028: 30f11400000000000000 | 	irmovq $20, %rcx     # Loop count (20 iterations)
+0x032: 6300                 | 	xorq %rax, %rax      # sum = 0
+0x034: 30fb0100000000000000 | 	irmovq $1, %rbx      # Constant 1
+                            | 
+0x03e:                      | loop:
+0x03e: 6211                 | 	andq %rcx, %rcx      # Check counter
+0x040: 738400000000000000   | 	je done
+                            | 
+                            | 	# --- Conflict Block 1 (Set 0) ---
+0x049: 50a80000000000000000 | 	mrmovq 0(%r8), %r10  # Read A[0] (0x300)
+0x053: 60a0                 | 	addq %r10, %rax
+0x055: 50a90000000000000000 | 	mrmovq 0(%r9), %r10  # Read B[0] (0x400) -> DM Conflict!
+0x05f: 60a0                 | 	addq %r10, %rax
+                            | 
+                            | 	# --- Conflict Block 2 (Set 1) ---
+0x061: 50a80800000000000000 | 	mrmovq 8(%r8), %r10  # Read A[1] (0x308)
+0x06b: 60a0                 | 	addq %r10, %rax
+0x06d: 50a90800000000000000 | 	mrmovq 8(%r9), %r10  # Read B[1] (0x408) -> DM Conflict!
+0x077: 60a0                 | 	addq %r10, %rax
+                            | 
+0x079: 61b1                 | 	subq %rbx, %rcx      # count--
+0x07b: 703e00000000000000   | 	jmp loop
+                            | 
+0x084:                      | done:
+0x084: 90                   | 	ret
+                            | 
+                            | # Data Setup
+0x300: 0100000000000000     | 	.quad 1              # A[0]
+0x308: 0200000000000000     | 	.quad 2              # A[1]
+0x400: 0300000000000000     | 	.quad 3              # B[0]
+0x408: 0400000000000000     | 	.quad 4              # B[1]
+                            | 
+0x500:                      | stack:

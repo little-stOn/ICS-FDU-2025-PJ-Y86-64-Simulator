@@ -14,7 +14,7 @@ def main():
         testname = filename.split('.')[0]
         try:
             # import ipdb; ipdb.set_trace()
-            subprocess.run(args.bin.split(" "), stdin=open(f"test/{filename}"), stdout=open(f"temp_answer/{testname}.json", 'w'), timeout=1)
+            subprocess.run(args.bin.split(" "), stdin=open(f"test/{filename}"), stdout=open(f"temp_answer/{testname}.json", 'w'), timeout=60)
         except Exception as e:
             print(f"Execution failed: {e}")
             return

@@ -1,0 +1,28 @@
+0x000:                      | 	.pos 0
+0x000: 30f40005000000000000 | 	irmovq stack, %rsp
+0x00a: 801400000000000000   | 	call main
+0x013: 00                   | 	halt
+                            |
+0x014:                      | main:
+0x014: 30f80002000000000000 | 	irmovq $0x200, %r8   # Data Address (Will conflict with Code)
+0x01e: 30f10500000000000000 | 	irmovq $5, %rcx      # Loop 5 times
+0x028: 30fb0100000000000000 | 	irmovq $1, %rbx      # Const 1
+0x032: 6300                 | 	xorq %rax, %rax      # sum = 0
+0x034: 700001000000000000   | 	jmp loop_start       # Jump to the aligned conflict zone
+                            |
+0x100:                      | 	.pos 0x100           # FORCE CODE to Set 0
+0x100:                      | loop_start:
+                            |   # This instruction is at 0x100 (Set 0).
+                            |   # It reads memory at 0x200 (Set 0).
+                            |   # Direct Mapped: KILLER CONFLICT.
+0x100: 50a80000000000000000 | 	mrmovq (%r8), %r10   
+0x10a: 60a0                 | 	addq %r10, %rax
+0x10c: 61b1                 | 	subq %rbx, %rcx
+0x10e: 740001000000000000   | 	jne loop_start       # Jump back to 0x100 (Trigger Miss in DM)
+0x117: 90                   | 	ret
+                            |
+0x200:                      | 	.pos 0x200           # FORCE DATA to Set 0
+0x200: 0100000000000000     | 	.quad 1
+                            |
+0x500:                      | 	.pos 0x500
+0x500:                      | stack:
